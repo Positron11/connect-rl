@@ -34,8 +34,8 @@ class WindowAgent:
 		return windows
 
 		
-	def get_action(self, env:CXEnvironment, player:int):
-		"""Get agent's optimal action."""
+	def get_action(self, env:CXEnvironment):
+		"""Get agent's optimal action in current game state."""
 
 		# extract windows
 		windows = self.extract_windows(env)
@@ -45,14 +45,12 @@ class WindowAgent:
 		window_actions = []
 
 		for i, window in enumerate(windows):
-			q_values = self.Q[(player, tuple(window.flatten()))]
+			q_values = self.Q[(env.current_player, tuple(window.flatten()))]
 			
 			# select best action
 			action = select_action(valid_actions, q_values)
 
 			window_actions.append((action, q_values[action]))
-
-		print(window_actions)
 
 		return max(window_actions, key=lambda t: t[1])[0]
 			

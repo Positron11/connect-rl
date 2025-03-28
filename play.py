@@ -20,7 +20,7 @@ class WindowGameAgent(CXGameAgent):
 	def play(self) -> tuple[bool, float]:
 		"""Play agent's turn."""
 
-		action = agent.get_action(self.env, self.env.current_player)
+		action = agent.get_action(self.env)
 				
 		return action, *self.env.play(action)
 

@@ -84,29 +84,24 @@ class CXEnvironment:
 		if (row := self.get_free()[col]) == -1: raise ValueError("Invalid move - column is full.")
 		else: self.board[row][col] = self.current_player
 
-		win, block = self.check_win(row, col)
+		win = self.check_win(row, col)
+		block_weight = self.check_block(row, col)
+
 		self.game_over = win or self.board_full()
 
 		# switch player
 		self.current_player = 3 - self.current_player
 
-		return win, block
+		return win, block_weight
 
 
-	def check_win(self, row, col) -> tuple[bool, float]:
-		"""
-		Check if placing a piece at (row, col) caused a win.
-		
-		Returns:
-			bool: The last move won the game
-			float: Block reward weight based on aggregate blocks 
-		"""
+	def check_win(self, row, col) -> bool:
+		"""Check if placing a piece at (row, col) caused a win."""
 		
 		# define directions: horizontal, vertical, diagonal
 		directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
 		
 		player = self.board[row, col]
-		opp = 3 - player
 		
 		# check for win
 		for dr, dc in directions:
@@ -127,10 +122,22 @@ class CXEnvironment:
 				c -= dc
 			
 			# return won, but not blocked (not significant)
-			if player_count >= self.x: return True, 0
+			if player_count >= self.x: return True
+
+		return False
+	
+
+	def check_block(self, row, col) -> float:
+		"""Check block value of placing a piece at (row, col)."""
+		
+		# define directions: horizontal, vertical, diagonal
+		directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+		
+		player = self.board[row, col]
+		opp = 3 - player
 
 		# check for block
-		block_reward_weight = 0
+		block_weight = 0
 		single_partial_blocks = 0
 
 		for dr, dc in directions:
@@ -157,16 +164,17 @@ class CXEnvironment:
 			open_neg = self.is_valid(r, c) and self.get_free()[c] == r
 			
 			# immediate complete block
-			if opp_count == self.x - 1: block_reward_weight += 1
+			if opp_count == self.x - 1: block_weight += 1
 			
 			# partial blocks
 			elif opp_count == self.x - 2:
-				if open_neg and open_pos: block_reward_weight += 1
+				if open_neg and open_pos: block_weight += 1
 				if open_neg != open_pos: single_partial_blocks += 1
 
 		# consider only multiple single open-ended partial blocks
-		if single_partial_blocks > 1: block_reward_weight += single_partial_blocks * 0.5
-		return False, block_reward_weight
+		if single_partial_blocks > 1: block_weight += single_partial_blocks * 0.5
+		
+		return block_weight
 	
 
 	def state(self, player:int) -> tuple[int, tuple]:

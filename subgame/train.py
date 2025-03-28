@@ -218,9 +218,10 @@ if __name__ == "__main__":
 	print(f"""\n4x4 Subgame - TQL {datetime.datetime.now()}
 
 [info] Static hyperparameters:
- - Episodes = {EPISODES}
- - Gamma    = {GAMMA}
- - Alpha    = {ALPHA}
+ - Episodes   = {EPISODES}
+ - Play split = {PLAY_SPLIT}
+ - Gamma      = {GAMMA}
+ - Alpha      = {ALPHA}
 
 [info] Rewards:
 - Win   = {WIN_REWARD}
@@ -247,7 +248,7 @@ if __name__ == "__main__":
 		evaluate(Q)
 
 	# save the final generation
-	print("\n[info] Saved table to:", SAVE_PATH)
-
 	with open(f"{SAVE_PATH}/q_table_4x4.pkl", "wb") as f:
 		pickle.dump(dict(Q), f)
+
+	print("\n[info] Saved table to:", SAVE_PATH)

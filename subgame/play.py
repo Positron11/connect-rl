@@ -1,33 +1,31 @@
 import sys
+from collections import defaultdict
 
 from environment.cxenv import CXEnvironment
-from subgame.utils import select_action
+from environment.cxgame import CXGame, CXGameAgent
+from subgame.utils import select_action, load_table
 
 
-# =============================================================== HELPER METHODS
+# =============================================================== OPPONENT AGENT
 
-def user_turn(env:CXEnvironment):
-	"""Get and play user's action."""
+class QTableGameAgent(CXGameAgent):
+	"""Q-table opponent agent for Connect-4 game."""
 
-	while True:
-		try:
-			col = int(input("Your move (1-4): ")) - 1
-			return env.play(col)
-		
-		except Exception as e: print(f"Invalid move: {e}")
+	def __init__(self, Q_table:defaultdict):
+		super().__init__()
 
-
-def ai_turn(env:CXEnvironment, player:int): # ----------------------------------
-	"""Play action according to loaded policy."""
-
-	state = env.state(player)
+		self.Q_table = Q_table
 	
-	valid_actions = env.valid_actions()
-	action = select_action(valid_actions, Q[state])
+
+	def play(self) -> tuple[bool, float]:
+		"""Play agent's turn."""
+
+		state = self.env.state(self.env.current_player)
 	
-	print(f"AI plays column {action + 1}")
-	
-	return env.play(action)
+		valid_actions = self.env.valid_actions()
+		action = select_action(valid_actions, self.Q_table[state])
+				
+		return action, *self.env.play(action)
 
 
 # ==================================================================== PLAY GAME
@@ -38,20 +36,7 @@ if __name__ == "__main__":
 	# initialize 4x4 environment
 	env = CXEnvironment(4, 4, 4)
 
-	user = int(sys.argv[2])
-	opponent = 3 - user
+	# initialize game with Q-table agent
+	game = CXGame(env, QTableGameAgent(Q_table), 3 - int(sys.argv[2]))
 
-	# play one game
-	while not env.game_over:
-		player = env.current_player
-
-		win, block_weight = user_turn(env) if player == user else ai_turn(env, player)
-
-		# print board
-		print(env)
-
-		# print block reward
-		if block_weight: print(f"{"You" if player == user else "AI"} blocked (weight = {block_weight})!")
-	
-	if win: print(f"{"You" if player == user else "AI"} win!")
-	else: print("It's a draw.")
+	game.play()

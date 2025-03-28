@@ -1,72 +1,42 @@
 import sys
-import numpy as np
-import pickle
-from collections import defaultdict
 
 from environment.cxenv import CXEnvironment
+from environment.cxgame import CXGame, CXGameAgent
+from subgame.utils import load_table
 from winagent.agent import WindowAgent
 
 
-# =============================================================== HELPER METHODS
+# =============================================================== OPPONENT AGENT
 
-def user_turn(env:CXEnvironment):
-	"""Get and play user's action."""
+class WindowGameAgent(CXGameAgent):
+	"""Q-table opponent agent for Connect-4 game."""
 
-	while True:
-		try:
-			col = int(input("Your move (1-4): ")) - 1
-			return env.play(col)
-		
-		except Exception as e: print(f"Invalid move: {e}")
+	def __init__(self, agent:WindowAgent):
+		super().__init__()
 
-
-def ai_turn(env:CXEnvironment, player:int): # ----------------------------------
-	"""Play action according to loaded policy."""
-
-	action = agent.get_action(env, player)
-
-	print(f"AI plays column {action + 1}")
+		self.agent = agent
 	
-	return env.play(action)
+
+	def play(self) -> tuple[bool, float]:
+		"""Play agent's turn."""
+
+		action = agent.get_action(self.env, self.env.current_player)
+				
+		return action, *self.env.play(action)
 
 	
 # ==================================================================== PLAY GAME
 
 if __name__ == "__main__":
-	# load Q-table
-	with open(sys.argv[1], "rb") as f:
-		Q_table = defaultdict(lambda: [0.0] * 4, pickle.load(f))
+	Q_table = load_table(sys.argv[1])
 
+	# create window agent
 	agent = WindowAgent(Q_table)
 
-	# Initialize environment
+	# initialize 6x7 environment
 	env = CXEnvironment(6, 7, 4)
 
-	user = int(sys.argv[2])
-	opponent = 3 - user
+	# initialize game with window agent
+	game = CXGame(env, WindowGameAgent(agent), 3 - int(sys.argv[2]))
 
-	# play one game
-	while not env.game_over:
-		player = env.current_player
-
-		win, block_weight = user_turn(env) if player == user else ai_turn(env, player)
-
-		# print board
-		print(env)
-
-		# print block reward
-		if block_weight: print(f"{"You" if player == user else "AI"} blocked (weight = {block_weight})!")
-	
-	if win: print(f"{"You" if player == user else "AI"} win!")
-	else: print("It's a draw.")
-
-	# env.board = np.array([
-	# 	[0,0,0,0,0,0,0],
-	# 	[0,0,0,0,0,0,0],
-	# 	[0,0,0,0,0,0,0],
-	# 	[0,1,0,0,0,0,0],
-	# 	[0,1,0,0,0,0,0],
-	# 	[0,1,2,2,0,0,0],
-	# ])
-
-	# print(agent.get_action(env, 2))
+	game.play()

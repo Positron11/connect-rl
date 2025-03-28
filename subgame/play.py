@@ -1,6 +1,4 @@
 import sys
-import pickle
-from collections import defaultdict
 
 from environment.cxenv import CXEnvironment
 from subgame.utils import select_action
@@ -35,11 +33,9 @@ def ai_turn(env:CXEnvironment, player:int): # ----------------------------------
 # ==================================================================== PLAY GAME
 
 if __name__ == "__main__":
-	# load Q-table
-	with open(sys.argv[1], "rb") as f:
-		Q = defaultdict(lambda: [0.0] * 4, pickle.load(f))
+	Q_table = load_table(sys.argv[1])
 
-	# Initialize environment
+	# initialize 4x4 environment
 	env = CXEnvironment(4, 4, 4)
 
 	user = int(sys.argv[2])

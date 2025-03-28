@@ -1,15 +1,13 @@
 import sys
-import pickle
 import random
-from collections import defaultdict
 
 from environment.cxenv import CXEnvironment
-from subgame.utils import select_action
+from subgame.utils import select_action, load_table
 
 
 # =============================================================== HELPER METHODS
 
-def test_qtable(Q:dict, games:int = 1000):
+def test_qtable(Q:dict, games:int=1000):
 	"""Test Q-table against random opponent for a batch of games."""
 
 	wins = 0
@@ -52,15 +50,15 @@ def test_qtable(Q:dict, games:int = 1000):
 # ===================================================================== RUN TEST
 
 if __name__ == "__main__":
-	games = int(sys.argv[2])
+	# initialize table and batch size
+	Q_table = load_table(sys.argv[1])
+	games = int(sys.argv[2]) if len(sys.argv) > 2 else None
 
-	# load Q-table
-	with open(sys.argv[1], "rb") as f:
-		q_table = defaultdict(lambda: [0.0] * 4, pickle.load(f))
-
-	wins, losses, draws = test_qtable(q_table, games)
+	# run tests
+	wins, losses, draws = test_qtable(Q_table, games)
 	
+	# print results
 	print(f"Results over {games} games:")
-	print(f"Wins: {wins} ({wins/games:.3f})")
-	print(f"Losses: {losses} ({losses/games:.3f})")
-	print(f"Draws: {draws} ({draws/games:.3f})")
+	print(f" - Wins: {wins} ({wins/games:.3f})")
+	print(f" - Losses: {losses} ({losses/games:.3f})")
+	print(f" - Draws: {draws} ({draws/games:.3f})")

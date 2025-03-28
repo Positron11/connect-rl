@@ -1,4 +1,6 @@
+import pickle
 import numpy as np
+from collections import defaultdict
 
 
 def select_action(valid_actions:list[int], q_vals:list[float], stochastic:bool=False) -> int:
@@ -16,3 +18,12 @@ def select_action(valid_actions:list[int], q_vals:list[float], stochastic:bool=F
 		return int(np.random.choice(candidate_actions))
 	
 	else: return int(np.argmax(masked_q))
+
+
+def load_table(filename:str) -> dict:
+	"""Load Q-table from file."""
+	
+	with open(filename, "rb") as f:
+		Q_table = defaultdict(lambda: [0.0] * 4, pickle.load(f))
+	
+	return Q_table

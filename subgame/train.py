@@ -226,7 +226,7 @@ def qlearn(base_Q:defaultdict	= None, # --------------------------------------
 		if random.random() < rand_start: random_start(env) 
 		
 		# play game and get learner's total reward
-		episodic_reward = play_game(env, Q, opponent, adversarial, epsilon)
+		episodic_reward = play_game(env, Q, opponent, adversarial, epsilon, frozen_Q=frozen_Q)
 
 		rewards.append(episodic_reward)
 

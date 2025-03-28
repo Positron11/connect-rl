@@ -20,7 +20,9 @@ EPSILON_FLOOR = 0.05
 EPSILON_DECAY = 0.9
 EPSILON_BOOST = 1.01
 
-EPISODES	= 200000
+RAND_START = 0.5
+
+EPISODES	= 500000
 GAMMA 		= 0.9
 PLAY_SPLIT	= 0.7
 ALPHA		= 0.05
@@ -35,6 +37,50 @@ EPSILON_UPDATE_INTERVAL = 5000
 
 
 # ======================================================= MODEL TRAINING METHODS
+
+def random_start(env:CXEnvironment) -> None:
+	"""Generate random starting board states."""
+
+	while True:
+		# empty board (upside down)
+		board = []
+		
+		for row in range(env.rows):
+			# gravity condition mask
+			if len(board): mask = board[row - 1] != 0
+			else: mask = np.ones(env.cols, dtype=bool)
+
+			# generate random row (50% chance of empty, equal chance of player 1 or 2)
+			row = np.zeros(env.cols, dtype=int)
+			row[mask] = np.random.choice([0, 1, 2], size=np.count_nonzero(mask), p=[0.5, 0.25, 0.25])
+
+			# add row to board
+			board.append(row)
+		
+		env.board = np.flipud(np.array(board))
+
+		# break if not possibly a terminal position
+		if np.sum(env.board == 1) < 4 and np.sum(env.board == 2) < 4: break
+
+		# restart if full board
+		if board[-1].all(): continue
+
+		# check for terminal (win)
+		win = False
+		
+		# check all non-empty positions
+		for row, col in np.argwhere(env.board != 0):
+			if env.check_win(row, col): 
+				win = True
+				break
+	
+		# break if no objection
+		if win: continue
+		else: break
+
+	# flip board
+	env.board = np.flipud(board)
+
 
 def compute_reward(env:CXEnvironment,
 				   player:int, 
@@ -144,7 +190,8 @@ def epsilon_update(epsilon:float, # --------------------------------------------
 def qlearn(base_Q:defaultdict	= None, # --------------------------------------
 		   frozen_Q:defaultdict	= None, 
 		   epsilon_start:float	= EPSILON_START,
-		   play_split:float		= PLAY_SPLIT) -> defaultdict:
+		   play_split:float		= PLAY_SPLIT,
+		   rand_start:float		= RAND_START) -> defaultdict:
 	
 	"""Train a new Q-table via tabular Q-learning."""
 
@@ -174,6 +221,9 @@ def qlearn(base_Q:defaultdict	= None, # --------------------------------------
 
 		# alternate opponent (starting with player 1)
 		opponent = (i_episode % 2) + 1
+
+		# random start
+		if random.random() < rand_start: random_start(env) 
 		
 		# play game and get learner's total reward
 		episodic_reward = play_game(env, Q, opponent, adversarial, epsilon)

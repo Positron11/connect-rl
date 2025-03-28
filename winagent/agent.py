@@ -3,6 +3,7 @@ from collections import defaultdict
 from environment.cxenv import CXEnvironment
 from subgame.utils import select_action
 
+
 class WindowAgent:
 	"""Sliding-window connext-X player."""
 
@@ -13,7 +14,6 @@ class WindowAgent:
 	def extract_windows(self, env:CXEnvironment):
 		"""Extract 4x4 windows from larger board."""
 
-		# flip environment board indexing
 		board = env.board
 
 		windows = []
@@ -27,7 +27,6 @@ class WindowAgent:
 				
 				# check for (partially) vacant or last available
 				if (not window.all()) or (r == 3): 
-					# flip indexing back
 					windows.append(window)
 					break
 
@@ -50,7 +49,7 @@ class WindowAgent:
 			# select best action
 			action = select_action(valid_actions, q_values)
 
-			window_actions.append((action, q_values[action]))
+			window_actions.append((action + i, q_values[action]))
 
 		return max(window_actions, key=lambda t: t[1])[0]
 			

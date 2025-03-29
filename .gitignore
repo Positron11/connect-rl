@@ -176,3 +176,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project-specific exceptions
+!report/build/
+report/build/*
+!report/build/*.pdf

@@ -178,6 +178,6 @@ cython_debug/
 .pypirc
 
 # Project-specific exceptions
-!report/build/
-report/build/*
-!report/build/*.pdf
+!docs/report/build/
+docs/report/build/*
+!docs/report/build/*.pdf
